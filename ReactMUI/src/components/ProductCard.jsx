@@ -49,14 +49,16 @@ export default function ProductCard({
         <Button size="small" component={RouterLink} to={`/products/${product.id}`}>
           Details
         </Button>
-        <Button
-          size="small"
-          startIcon={<AddShoppingCartIcon />}
-          onClick={() => onAddToCart(product)}
-          disabled={addingToCart || Number(product.stock) < 1}
-        >
-          {addingToCart ? "Adding..." : "Add to cart"}
-        </Button>
+        {!isAdmin && (
+          <Button
+            size="small"
+            startIcon={<AddShoppingCartIcon />}
+            onClick={() => onAddToCart(product)}
+            disabled={addingToCart || Number(product.stock) < 1}
+          >
+            {addingToCart ? "Adding..." : "Add to cart"}
+          </Button>
+        )}
         {isAdmin && (
           <>
             <Button size="small" onClick={() => onEdit(product)}>

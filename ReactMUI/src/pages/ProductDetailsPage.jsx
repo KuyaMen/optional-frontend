@@ -10,7 +10,7 @@ const formatPrice = (price) =>
     currency: "PHP",
   }).format(Number(price));
 
-export default function ProductDetailsPage({ onCartChange }) {
+export default function ProductDetailsPage({ isAdmin, onCartChange }) {
   const { id } = useParams();
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -108,14 +108,16 @@ export default function ProductDetailsPage({ onCartChange }) {
           <Typography>{product.description || "No description provided."}</Typography>
           {cartError && <Alert severity="error">{cartError}</Alert>}
           <Stack direction="row" spacing={1} sx={{ mt: 2 }}>
-            <Button
-              variant="contained"
-              startIcon={<AddShoppingCartIcon />}
-              onClick={addToCart}
-              disabled={addingToCart || Number(product.stock) < 1}
-            >
-              {addingToCart ? "Adding..." : "Add to cart"}
-            </Button>
+            {!isAdmin && (
+              <Button
+                variant="contained"
+                startIcon={<AddShoppingCartIcon />}
+                onClick={addToCart}
+                disabled={addingToCart || Number(product.stock) < 1}
+              >
+                {addingToCart ? "Adding..." : "Add to cart"}
+              </Button>
+            )}
             <Button component={RouterLink} to="/" variant="outlined">
               Return to catalog
             </Button>

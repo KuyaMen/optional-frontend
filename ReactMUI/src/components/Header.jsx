@@ -10,7 +10,7 @@ export default function Header({ user, onSignOut, cartVersion }) {
   const [cartError, setCartError] = useState("");
 
   useEffect(() => {
-    if (!user) {
+    if (!user || user.role === "admin") {
       return undefined;
     }
 
@@ -72,21 +72,23 @@ export default function Header({ user, onSignOut, cartVersion }) {
         </Button>
         {user ? (
           <>
-            <Tooltip title={cartError || "View your cart"}>
-              <Button
-                component={RouterLink}
-                to="/cart"
-                color="inherit"
-                aria-label={`Cart, ${user ? cartCount : 0} items`}
-              >
-                <Badge badgeContent={user ? cartCount : 0} color="secondary">
-                  <ShoppingCartOutlinedIcon />
-                </Badge>
-                <Typography component="span" sx={{ ml: 1 }}>
-                  Cart
-                </Typography>
-              </Button>
-            </Tooltip>
+            {user.role !== "admin" && (
+              <Tooltip title={cartError || "View your cart"}>
+                <Button
+                  component={RouterLink}
+                  to="/cart"
+                  color="inherit"
+                  aria-label={`Cart, ${cartCount} items`}
+                >
+                  <Badge badgeContent={cartCount} color="secondary">
+                    <ShoppingCartOutlinedIcon />
+                  </Badge>
+                  <Typography component="span" sx={{ ml: 1 }}>
+                    Cart
+                  </Typography>
+                </Button>
+              </Tooltip>
+            )}
             <Typography variant="body2" sx={{ display: { xs: "none", sm: "block" }, ml: 2 }}>
               {[user.firstname, user.lastname].filter(Boolean).join(" ") || user.name || user.email} ({user.role})
             </Typography>

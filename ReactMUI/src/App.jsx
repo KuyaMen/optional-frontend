@@ -105,11 +105,22 @@ export default function App() {
           />
           <Route
             path="/products/:id"
-            element={<ProductDetailsPage onCartChange={handleCartChange} />}
+            element={
+              <ProductDetailsPage
+                isAdmin={user?.role === "admin"}
+                onCartChange={handleCartChange}
+              />
+            }
           />
           <Route
             path="/cart"
-            element={<CartPage onCartChange={handleCartChange} />}
+            element={
+              user?.role === "admin" ? (
+                <Navigate to="/" replace />
+              ) : (
+                <CartPage onCartChange={handleCartChange} />
+              )
+            }
           />
         </Route>
         <Route path="*" element={<NotFoundPage />} />
