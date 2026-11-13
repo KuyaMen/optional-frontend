@@ -21,7 +21,7 @@ const fetchCategories = async () => {
   return Array.isArray(data) ? data : [];
 };
 
-export default function ProductListPage({ isAdmin }) {
+export default function ProductListPage({ isAdmin, onCartChange }) {
   const [formOpen, setFormOpen] = useState(false);
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -32,14 +32,20 @@ export default function ProductListPage({ isAdmin }) {
   const [error, setError] = useState("");
   const [categoryError, setCategoryError] = useState("");
   const [search, setSearch] = useState("");
+  const [cartError, setCartError] = useState("");
+  const [addingToCartId, setAddingToCartId] = useState(null);
 
   const loadProducts = useCallback(async (showLoading = false) => {
     if (showLoading) setLoading(true);
     try {
       setProducts(await fetchProducts());
       setError("");
-    } catch {
-      setError("Unable to load products. Check the API connection and try again.");
+    } catch (requestError) {
+      setError(
+        requestError.response?.status === 403
+          ? "Your account is not allowed to view products."
+          : "Unable to load products. Check the API connection and try again."
+      );
     } finally {
       setLoading(false);
     }
@@ -51,8 +57,14 @@ export default function ProductListPage({ isAdmin }) {
       try {
         const data = await fetchProducts();
         if (active) setProducts(data);
-      } catch {
-        if (active) setError("Unable to load products. Check the API connection and try again.");
+      } catch (requestError) {
+        if (active) {
+          setError(
+            requestError.response?.status === 403
+              ? "Your account is not allowed to view products."
+              : "Unable to load products. Check the API connection and try again."
+          );
+        }
       } finally {
         if (active) setLoading(false);
       }
@@ -109,7 +121,14 @@ export default function ProductListPage({ isAdmin }) {
       setFormOpen(false);
       setEditingProduct(null);
     } catch (requestError) {
-      setError(getApiErrorMessage(requestError, "Unable to create product."));
+      setError(
+        getApiErrorMessage(
+          requestError,
+          requestError.response?.status === 403
+            ? "Only administrators can create products."
+            : "Unable to create product."
+        )
+      );
     }
   }
 
@@ -132,7 +151,14 @@ export default function ProductListPage({ isAdmin }) {
       setFormOpen(false);
       setEditingProduct(null);
     } catch (requestError) {
-      setError(getApiErrorMessage(requestError, "Unable to update product."));
+      setError(
+        getApiErrorMessage(
+          requestError,
+          requestError.response?.status === 403
+            ? "Only administrators can update products."
+            : "Unable to update product."
+        )
+      );
     }
   }
 
@@ -145,7 +171,14 @@ export default function ProductListPage({ isAdmin }) {
       setNotice("Product deleted successfully.");
       setDeletingProduct(null);
     } catch (requestError) {
-      setError(getApiErrorMessage(requestError, "Unable to delete product."));
+      setError(
+        getApiErrorMessage(
+          requestError,
+          requestError.response?.status === 403
+            ? "Only administrators can delete products."
+            : "Unable to delete product."
+        )
+      );
     }
   }
 
@@ -156,6 +189,21 @@ export default function ProductListPage({ isAdmin }) {
       createProduct(values);
     }
   };
+
+  async function addToCart(product) {
+    setCartError("");
+    setAddingToCartId(product.id);
+
+    try {
+      await api.post("/carts", { product_id: product.id, quantity: 1 });
+      onCartChange();
+      setNotice(`${product.name} added to your cart.`);
+    } catch (requestError) {
+      setCartError(getApiErrorMessage(requestError, "Unable to add this product to your cart."));
+    } finally {
+      setAddingToCartId(null);
+    }
+  }
 
   const visibleProducts = products.filter((product) =>
     String(product.name ?? "").toLowerCase().includes(search.toLowerCase())
@@ -202,6 +250,7 @@ export default function ProductListPage({ isAdmin }) {
       </Stack>
 
       {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+      {cartError && <Alert severity="error" sx={{ mb: 2 }}>{cartError}</Alert>}
       {!isAdmin && (
         <Alert severity="info" sx={{ mb: 2 }}>
           Sign in with an admin account to create, edit, or delete products.
@@ -220,6 +269,8 @@ export default function ProductListPage({ isAdmin }) {
               key={product.id}
               product={product}
               isAdmin={isAdmin}
+              onAddToCart={addToCart}
+              addingToCart={addingToCartId === product.id}
               onEdit={(prod) => { setEditingProduct(prod); setFormOpen(true); }}
               onDelete={setDeletingProduct}
             />

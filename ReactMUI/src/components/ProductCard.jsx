@@ -7,6 +7,7 @@ import {
   Chip,
   Typography,
 } from "@mui/material";
+import AddShoppingCartIcon from "@mui/icons-material/AddShoppingCart";
 import { Link as RouterLink } from "react-router-dom";
 
 const formatPrice = (price) =>
@@ -15,7 +16,14 @@ const formatPrice = (price) =>
     currency: "PHP",
   }).format(Number(price));
 
-export default function ProductCard({ product, isAdmin, onEdit, onDelete }) {
+export default function ProductCard({
+  product,
+  isAdmin,
+  onEdit,
+  onDelete,
+  onAddToCart,
+  addingToCart,
+}) {
   return (
     <Card sx={{ height: "100%", display: "flex", flexDirection: "column", overflow: "hidden" }}>
       <CardMedia
@@ -40,6 +48,14 @@ export default function ProductCard({ product, isAdmin, onEdit, onDelete }) {
       <CardActions sx={{ px: 2, pb: 2, flexWrap: "wrap" }}>
         <Button size="small" component={RouterLink} to={`/products/${product.id}`}>
           Details
+        </Button>
+        <Button
+          size="small"
+          startIcon={<AddShoppingCartIcon />}
+          onClick={() => onAddToCart(product)}
+          disabled={addingToCart || Number(product.stock) < 1}
+        >
+          {addingToCart ? "Adding..." : "Add to cart"}
         </Button>
         {isAdmin && (
           <>
