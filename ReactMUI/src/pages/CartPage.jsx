@@ -21,7 +21,7 @@ const formatPrice = (price) =>
     currency: "PHP",
   }).format(Number(price));
 
-const getUnitPrice = (product) => Number(product.saleprice ?? product.price);
+const getUnitPrice = (product) => Number(product.price);
 
 export default function CartPage({ onCartChange }) {
   const [items, setItems] = useState([]);
